@@ -1,0 +1,43 @@
+#!/usr/bin/env sh
+
+echo "🔍 Running pre-commit checks..."
+
+# Lint
+echo "\n📌 ESLint..."
+npm run lint
+if [ $? -ne 0 ]; then
+  echo "❌ Lint failed."
+  exit 1
+fi
+
+# Type checking
+echo "\n📌 TypeScript..."
+npm run type-check
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScript type check failed."
+  exit 1
+fi
+
+# Full production build
+echo "\n📌 Production build..."
+npm run build
+if [ $? -ne 0 ]; then
+  echo "❌ Build failed."
+  exit 1
+fi
+
+# Console.log check
+echo "\n📌 Checking for console.log..."
+
+FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(js|jsx|ts|tsx)$')
+
+if [ -n "$FILES" ]; then
+  if grep -nH "console\.log" $FILES; then
+    echo ""
+    echo "❌ console.log found in staged files."
+    exit 1
+  fi
+fi
+
+echo ""
+echo "✅ All checks passed!"
